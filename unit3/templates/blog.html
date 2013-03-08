@@ -21,7 +21,7 @@
   			<div class="post">
   				<div class="post-heading">
   					<a href="{{post.link}}" class="post-title">{{post.subject}}</a>
-  					<div class="post-date">{{post.date}}</div>
+  					<div class="post-date">{{post.date.strftime("%c")}}</div>
   				</div>  				
 
   				<div class="post-content">
@@ -30,23 +30,7 @@
   			</div>
 
   		{% endfor %}
-  	
 
-
-
-  	<!-- 	<div class="post">
-  			<div class="post-heading">
-    			<a href="/blog/20002" class="post-title">
-      			the suit is back!
-    			</a>
-    		<div class="post-date">
-      			May 08, 2012
-    		</div>
-  		</div>
-
-  		<div class="post-content">
-    		again
-  		</div> -->
 
 	</div>
   
