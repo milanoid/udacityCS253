@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import re
+
+# TODO: replace '\n' with <br> tag in content
+
 import os
 import jinja2
 import webapp2
@@ -74,7 +76,11 @@ class NewPostHandler(Handler):
 class Permalink(Handler):
 	def get(self, post_id):
 		post = Post.get_by_id(int(post_id))
-		self.render("blog.html", posts=[post])
+		
+		if post:
+			self.render("blog.html", posts=[post])
+		else:
+			self.error(404)
 
 
 app = webapp2.WSGIApplication([('/blog', BlogHandler),
