@@ -16,6 +16,7 @@
 #
 
 # TODO: replace '\n' with <br> tag in content
+# TODO: fix links on /blog, they should point to a specific blog post
 # TEST
 
 import os
@@ -49,7 +50,8 @@ class Post(db.Model):
 
 class BlogHandler(Handler):
 	def render_blog(self):
-		posts = db.GqlQuery("SELECT * FROM Post ORDER BY date DESC")
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY date DESC limit 10") # Gql
+		# posts = Post.all().order('-created')
 		self.render("blog.html", posts=posts)
 
 	def get(self):
@@ -77,9 +79,12 @@ class NewPostHandler(Handler):
 class Permalink(Handler):
 	def get(self, post_id):
 		post = Post.get_by_id(int(post_id))
+		# key = db.Key.from_path('Post', int(post_id), parent=blog_key())
 		
+		#p_id = str(post.key().id())
+
 		if post:
-			self.render("blog.html", posts=[post])
+			self.render("blog.html", posts=[post], p_id=p_id)
 		else:
 			self.error(404)
 
