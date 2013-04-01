@@ -84,12 +84,16 @@ class Handler(webapp2.RequestHandler):
 		return email.count('@') == 1
 
 	def validate_login(self, username, password):
-		# look up for userID
-		users = User.all()
-		for user in users:
-			if user.username == username:
-				return user.password == password # check password
-		return False
+		# users = User.all()
+
+		user = User.all().filter('username =', username).get()
+		if user:
+			return user.password == password
+
+		# for user in users:
+		# 	if user.username == username:
+		# 		return user.password == password # check password
+		# return False
 
 # Gql model
 class User(db.Model):
