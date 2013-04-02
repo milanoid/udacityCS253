@@ -76,6 +76,9 @@ class NewPostHandler(Handler):
 			error = "we need both a subject and content"
 			self.render_new_post(subject, content, error)
 
+
+
+
 class Permalink(Handler):
 	def get(self, post_id):
 		post = Post.get_by_id(int(post_id))
@@ -89,6 +92,90 @@ class Permalink(Handler):
 			self.error(404)
 
 
+
+# Gql model
+class User(db.Model):
+	username = db.StringProperty(required = True)
+	password = db.StringProperty(required = True)
+	email = db.EmailProperty(required = False)
+
+
+class SignUp(Handler):
+	def get(self):
+		self.render("signup.html")
+
+	def post(self):
+		user_username = self.request.get("username")
+		user_password = self.request.get("password")
+		user_vrfypass = self.request.get("verify")
+		user_email = self.request.get("email")
+
+		# validate username, password, vrfypass
+		if self.validate_username(user_username):
+			if self.validate_password(user_password):
+				if self.validate_vrfypass(user_vrfypass, user_password):
+					
+					# validate email
+					if user_email:
+						if self.validate_email(user_email):
+							pass
+					else:
+						user_email = None
+
+					# store new user into DB
+					u = User(username=user_username, password=user_password, email=user_email)
+					u.put()
+
+					# make cookie value secure first
+					secure_username = make_secure_val(str(user_username))
+
+					# store the secured cookie
+					self.response.headers.add_header('Set-Cookie', 'my_cookie_name='+ secure_username +' Path=/')
+
+					# redirect
+					self.redirect("/welcome")
+				else:
+					self.render('signup.html', username=user_username, email=user_email, error_vrfy="Your password didn't match")
+			else:
+				self.render('signup.html', username=user_username, email=user_email, error_pass="Password error!")
+
+		else:
+			self.render('signup.html', username=user_username, email=user_email, error_username='User already exists.')		
+
+class Login(Handler):
+	def get(self):
+		self.render('login.html')
+
+	def post(self):
+		username = self.request.get('username')
+		password = self.request.get('password')
+
+		# if the username exists in the DB
+		if self.validate_login(username, password):
+			# make cookie value secure first
+			secure_username = make_secure_val(str(username))
+
+			# store the secured cookie
+			self.response.headers.add_header('Set-Cookie', 'my_cookie_name='+ secure_username +' Path=/')
+			
+			# and redirct
+			self.redirect('/welcome')
+		else:
+			self.render('login.html', username=username, error='Invalid Login')
+
+
+class Logout(Handler):
+	def get(self):
+		# delete cookie
+		self.response.delete_cookie('my_cookie_name')
+
+		# redirect
+		self.redirect('/signup')
+
+
 app = webapp2.WSGIApplication([('/blog', BlogHandler),
 	('/blog/newpost', NewPostHandler),
+	('/signup', SignUp),
+    ('/login', Login),
+    ('/logout', Logout),
 	(r'/blog/(\d+)', Permalink)], debug=True)
