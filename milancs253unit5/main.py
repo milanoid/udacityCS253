@@ -22,6 +22,7 @@
 import os
 import jinja2
 import webapp2
+import json
 
 
 from google.appengine.ext import db
@@ -173,9 +174,52 @@ class Logout(Handler):
 		self.redirect('/signup')
 
 
+
+class BlogPostJson(Handler):
+	def get(self, post_id):
+		
+		# get the post
+		post = Post.get_by_id(int(post_id))	
+		p_id = str(post.key().id())
+
+		# prepare string representation of json response
+		my_response = {"content" : post.content, "crated" : str(post.date), "subject" : post.subject}
+
+		# dumpt the json string into real json
+		json_response = json.dumps(my_response)
+
+		# modify content-type and push json response out
+		self.response.headers.add_header('content-type', 'application/json', charset='utf-8')
+		self.response.out.write(json_response)
+
+class BlogJson(Handler):
+	def get(self):
+		# get all blog posts
+		posts = db.GqlQuery("SELECT * FROM Post ORDER BY date DESC") # Gql
+
+		# prepare python string representation of json response
+		my_response = []
+		json_item = {}
+
+		for post in posts:
+			json_item = {"content" : post.content, "crated" : str(post.date), "subject" : post.subject}
+			my_response.append(json_item)
+
+		# dumpt the json string into real json
+		json_response = json.dumps(my_response)
+
+		# modify content-type and push json response out
+		self.response.headers.add_header('content-type', 'application/json', charset='utf-8')
+		self.response.out.write(json_response)
+
+
+
 app = webapp2.WSGIApplication([('/blog', BlogHandler),
+	('/blog' + '.json', BlogJson),
 	('/blog/newpost', NewPostHandler),
 	('/signup', SignUp),
     ('/login', Login),
     ('/logout', Logout),
-	(r'/blog/(\d+)', Permalink)], debug=True)
+	(r'/blog/(\d+)', Permalink),
+	(r'/blog/(\d+)' + '.json', BlogPostJson)
+	], debug=True)
