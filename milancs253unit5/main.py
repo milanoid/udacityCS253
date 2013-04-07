@@ -187,7 +187,7 @@ class SignUp(Handler):
 					self.response.headers.add_header('Set-Cookie', 'my_cookie_name='+ secure_username +' Path=/')
 
 					# redirect
-					self.redirect("/welcome")
+					self.redirect("/blog/welcome")
 				else:
 					self.render('signup.html', username=user_username, email=user_email, error_vrfy="Your password didn't match")
 			else:
@@ -213,7 +213,7 @@ class Login(Handler):
 			self.response.headers.add_header('Set-Cookie', 'my_cookie_name='+ secure_username +' Path=/')
 			
 			# and redirct
-			self.redirect('/welcome')
+			self.redirect('/blog/welcome')
 		else:
 			self.render('login.html', username=username, error='Invalid Login')
 
@@ -224,7 +224,7 @@ class Logout(Handler):
 		self.response.delete_cookie('my_cookie_name')
 
 		# redirect
-		self.redirect('/signup')
+		self.redirect('/blog/signup')
 
 class Welcome(Handler):
 	def get(self):
@@ -233,14 +233,17 @@ class Welcome(Handler):
 
 		# get the cookie and verify
 		if cookie:
+			logging.info("1 - In cookie if !!" + cookie)
 			cookie_val = check_secure_val(cookie)
 			if cookie_val:
+				logging.info("2 - In cookie_val if !!" + cookie)
 				cookie_username = str(cookie_val)
+				self.render("welcome.html", name = cookie_username)
 			else:
-				self.redirect('/signup')
+				self.redirect('/blog/signup')
 		else:
-			self.redirect('/signup')
-		self.render("welcome.html", name = cookie_username)
+			self.redirect('/blog/signup')
+		
 
 
 
@@ -283,13 +286,14 @@ class BlogJson(Handler):
 
 
 
-app = webapp2.WSGIApplication([('/blog', BlogHandler),
-	('/blog' + '.json', BlogJson),
+app = webapp2.WSGIApplication([('/', BlogHandler),
+	('/blog', BlogHandler),
+	('/blog/.json', BlogJson),
 	('/blog/newpost', NewPostHandler),
-	('/signup', SignUp),
-	('/welcome', Welcome),
-    ('/login', Login),
-    ('/logout', Logout),
+	('/blog/signup', SignUp),
+	('/blog/welcome', Welcome),
+    ('/blog/login', Login),
+    ('/blog/logout', Logout),
 	(r'/blog/(\d+)', Permalink),
 	(r'/blog/(\d+)' + '.json', BlogPostJson)
 	], debug=True)
