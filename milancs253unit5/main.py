@@ -173,6 +173,22 @@ class Logout(Handler):
 		# redirect
 		self.redirect('/signup')
 
+class Welcome(Handler):
+	def get(self):
+		# name - get from cookie
+		cookie = self.request.cookies.get('my_cookie_name')
+
+		# get the cookie and verify
+		if cookie:
+			cookie_val = check_secure_val(cookie)
+			if cookie_val:
+				cookie_username = str(cookie_val)
+			else:
+				self.redirect('/signup')
+		else:
+			self.redirect('/signup')
+		self.render("welcome.html", name = cookie_username)
+
 
 
 class BlogPostJson(Handler):
