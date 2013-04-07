@@ -23,12 +23,28 @@ import os
 import jinja2
 import webapp2
 import json
-
+import hmac
+import logging
 
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
+
+
+# cookies security related methods
+SECRET = 'imsosecret'
+
+def hash_str(s):
+    return hmac.new(SECRET, s).hexdigest()
+
+def make_secure_val(s):
+	return "%s|%s" % (s, hash_str(s))
+
+def check_secure_val(h):
+	val = h.split('|')[0]
+	if h == make_secure_val(val):
+		return val
 
 
 class Handler(webapp2.RequestHandler):
@@ -41,6 +57,43 @@ class Handler(webapp2.RequestHandler):
 
 	def render(self, template, **kw):
 		self.write(self.render_str(template, **kw))
+
+	# validation functions
+	def validate_username(self, username):
+		# get all existing users from DB
+		users = User.all()
+
+		# Loop through all of them and check
+		for user in users:
+			#logging.info(user.username)
+			if str(user.username) == username:
+				logging.info("existing user found: " + str(user.username))
+				return False
+			else:
+				pass
+		return True
+
+	def validate_password(self, password):
+		# password must be at least 3 chars long
+		if len(password) < 3:
+			return False
+		else:
+			return True
+
+		return True
+	def validate_vrfypass(self, vrfypass, password):
+		return vrfypass == password
+
+	def validate_email(self, email):
+		# a dummy verification, does it contain exactly one '@' ?
+		return email.count('@') == 1
+
+	def validate_login(self, username, password):
+		# users = User.all()
+
+		user = User.all().filter('username =', username).get()
+		if user:
+			return user.password == password
 
 # Gql model
 class Post(db.Model):
@@ -234,6 +287,7 @@ app = webapp2.WSGIApplication([('/blog', BlogHandler),
 	('/blog' + '.json', BlogJson),
 	('/blog/newpost', NewPostHandler),
 	('/signup', SignUp),
+	('/welcome', Welcome),
     ('/login', Login),
     ('/logout', Logout),
 	(r'/blog/(\d+)', Permalink),
