@@ -68,17 +68,16 @@ class Art(db.Model):
 	created = db.DateTimeProperty(auto_now_add = True)
 	coords = db.GeoPtProperty()
 
-CACHE = {}
 def top_arts(update = False):
 	key = 'top'
 
-	if not update and key in CACHE:
-		arts = CACHE[key]
-	else:
+	arts = memcache.get(key)
+
+	if arts is None or update:
 		logging.error("DB QUERY")
 		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 10")
 		arts = list(arts)
-		CACHE[key] =  arts
+		memcache.set(key, arts)
 	return arts
 
 
