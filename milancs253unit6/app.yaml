@@ -13,7 +13,7 @@ handlers:
   static_dir: css
 
 - url: .*
-  script: mainLesson6.app
+  script: main.app
 
 libraries:
 - name: webapp2
